@@ -98,15 +98,17 @@
     // Une sélection est consommée une seule fois, uniquement à l'arrivée au devis.
     const quoteField = (name) => form?.elements.namedItem(name);
     const quoteText = (value) => typeof value === "string" ? value.trim().slice(0, 200) : "";
-    const isMediaService = () => quoteField("pole")?.value === "Media & Créative"
-      && quoteField("offre")?.value === "Media — À la carte";
+    const hasServiceSelection = () => (quoteField("pole")?.value === "Créative & Media"
+      && quoteField("offre")?.value === "Media — À la carte")
+      || (quoteField("pole")?.value === "Tech & Sécurité"
+      && quoteField("offre")?.value === "Étude Tech & Sécurité");
     const syncServiceVisibility = () => {
       const wrapper = form?.querySelector("#prestation-field");
       if (wrapper) wrapper.hidden = !quoteText(quoteField("prestation")?.value);
     };
     const clearUnrelatedService = () => {
       const field = quoteField("prestation");
-      if (field && !isMediaService()) field.value = "";
+      if (field && !hasServiceSelection()) field.value = "";
       syncServiceVisibility();
     };
     ["pole", "offre"].forEach((name) => {
@@ -129,7 +131,7 @@
         const field = quoteField(name);
         if (!field) return;
         let value = quoteText(selection[name]);
-        if (name === "pole" && value === "Creative & Media") value = "Media & Créative";
+        if (name === "pole" && ["Creative & Media", "Media & Créative"].includes(value)) value = "Créative & Media";
         if (name === "offre") value = value.replace(/^Pack Media — /, "Pack Media ");
         field.value = field.options && !Array.from(field.options).some((option) => option.value === value)
           ? "" : value;
@@ -142,7 +144,7 @@
       });
       const serviceField = quoteField("prestation");
       if (serviceField) {
-        serviceField.value = isMediaService() ? quoteText(selection.service) : "";
+        serviceField.value = hasServiceSelection() ? quoteText(selection.service) : "";
         serviceField.dispatchEvent(new Event("input", { bubbles: true }));
       }
       syncServiceVisibility();
